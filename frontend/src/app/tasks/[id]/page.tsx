@@ -292,9 +292,17 @@ export default function TaskPage() {
                     <h3 className="line-clamp-2 text-sm font-semibold leading-snug text-white group-hover:text-brand">
                       {clip.hook_title || clip.title}
                     </h3>
-                    <p className="text-xs text-muted-foreground">
-                      {clip.start_time} – {clip.end_time}
-                    </p>
+                    <div className="flex items-center justify-between text-xs text-muted-foreground">
+                      <span>{clip.start_time} – {clip.end_time}</span>
+                      {clip.mood && (
+                        <span className="text-[10px] font-medium text-brand-foreground/80">
+                          {clip.mood === "energetic" ? "⚡ Hype" :
+                           clip.mood === "funny" ? "🎭 Funny" :
+                           clip.mood === "dramatic" ? "🕵️ Suspense" :
+                           clip.mood === "motivational" ? "💡 Inspiring" : "☕ Chill"}
+                        </span>
+                      )}
+                    </div>
                   </div>
                 </article>
               );

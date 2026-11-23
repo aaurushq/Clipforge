@@ -38,6 +38,8 @@ export default function HomePage() {
   // Settings
   const [length, setLength] = useState<"short" | "medium" | "long">("medium");
   const [subtitles, setSubtitles] = useState(true);
+  const [bgm, setBgm] = useState(true);
+  const [sfx, setSfx] = useState(true);
   const [cropMode, setCropMode] = useState<"blur_fill" | "center_crop">("blur_fill");
   const [showSettings, setShowSettings] = useState(false);
 
@@ -91,6 +93,8 @@ export default function HomePage() {
         formData.append("file", file);
         formData.append("length", length);
         formData.append("subtitles", String(subtitles));
+        formData.append("bgm", String(bgm));
+        formData.append("sfx", String(sfx));
         formData.append("crop_mode", cropMode);
 
         const res = await fetch("/api/tasks/upload", {
@@ -114,6 +118,8 @@ export default function HomePage() {
             url: url.trim(),
             length,
             subtitles,
+            bgm,
+            sfx,
             crop_mode: cropMode,
           }),
         });
@@ -243,7 +249,9 @@ export default function HomePage() {
                   <SlidersHorizontal className="size-3.5 text-brand" />
                   <span>
                     {length === "short" ? "Short (15–30s)" : length === "long" ? "Long (60–90s)" : "Medium (30–60s)"} ·{" "}
-                    Captions: {subtitles ? "Default" : "Off"} · 9:16
+                    Captions: {subtitles ? "Default" : "Off"}
+                    {bgm ? " · 🎵 BGM" : ""}
+                    {sfx ? " · 🔊 SFX" : ""} · 9:16
                   </span>
                   <ChevronDown className="size-3 text-muted-foreground" />
                 </button>
@@ -288,6 +296,48 @@ export default function HomePage() {
                           <span
                             className={`block size-4 rounded-full bg-white transition-transform ${
                               subtitles ? "translate-x-4" : "translate-x-0.5"
+                            }`}
+                          />
+                        </button>
+                      </div>
+
+                      {/* Auto BGM */}
+                      <div className="flex items-center justify-between border-t border-white/5 pt-3">
+                        <div>
+                          <span className="block text-xs font-medium text-zinc-300">Auto BGM (Mood-Matched)</span>
+                          <span className="block text-[10px] text-muted-foreground">Smart audio ducking to 15%</span>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => setBgm(!bgm)}
+                          className={`h-5 w-9 rounded-full transition-colors ${
+                            bgm ? "bg-brand" : "bg-white/20"
+                          } relative`}
+                        >
+                          <span
+                            className={`block size-4 rounded-full bg-white transition-transform ${
+                              bgm ? "translate-x-4" : "translate-x-0.5"
+                            }`}
+                          />
+                        </button>
+                      </div>
+
+                      {/* Auto SFX */}
+                      <div className="flex items-center justify-between border-t border-white/5 pt-3">
+                        <div>
+                          <span className="block text-xs font-medium text-zinc-300">Auto SFX (Punches & Whooshes)</span>
+                          <span className="block text-[10px] text-muted-foreground">Accurately timed transition hits</span>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => setSfx(!sfx)}
+                          className={`h-5 w-9 rounded-full transition-colors ${
+                            sfx ? "bg-brand" : "bg-white/20"
+                          } relative`}
+                        >
+                          <span
+                            className={`block size-4 rounded-full bg-white transition-transform ${
+                              sfx ? "translate-x-4" : "translate-x-0.5"
                             }`}
                           />
                         </button>

@@ -38,6 +38,8 @@ class TaskCreateRequest(BaseModel):
     url: Optional[str] = None
     length: str = "medium"  # "short", "medium", "long"
     subtitles: bool = True
+    bgm: bool = True
+    sfx: bool = True
     aspect_ratio: str = "9:16"
     crop_mode: str = "blur_fill"
 
@@ -139,7 +141,7 @@ async def run_clipping_pipeline(task_id: str):
                     output_path=ass_file
                 )
 
-            # 2. Reframe, burn subtitles, render MP4
+            # 2. Reframe, burn subtitles, mix BGM & SFX, render MP4
             render_result = await asyncio.to_thread(
                 cut_and_render_clip,
                 source_video_path=video_path,
@@ -147,7 +149,11 @@ async def run_clipping_pipeline(task_id: str):
                 end_time=clip_info["end_time"],
                 output_clip_path=out_clip_path,
                 subtitle_ass_path=ass_path,
-                crop_mode=task.get("crop_mode", "blur_fill")
+                crop_mode=task.get("crop_mode", "blur_fill"),
+                add_bgm=task.get("bgm", True),
+                add_sfx=task.get("sfx", True),
+                mood=clip_info.get("mood", "energetic"),
+                sfx_cues=clip_info.get("sfx_cues", [])
             )
 
             # Format time strings
@@ -173,6 +179,9 @@ async def run_clipping_pipeline(task_id: str):
                 "value_score": clip_info.get("value_score", 22),
                 "shareability_score": clip_info.get("shareability_score", 23),
                 "hook_type": clip_info.get("hook_type", "Shock"),
+                "mood": clip_info.get("mood", "energetic"),
+                "bgm_description": clip_info.get("bgm_description", "Hype Beat"),
+                "sfx_cues": clip_info.get("sfx_cues", []),
                 "reasoning": clip_info.get("reasoning", "Engaging hook with dynamic retention."),
                 "text": ""
             }
@@ -221,6 +230,8 @@ async def create_task(req: TaskCreateRequest, background_tasks: BackgroundTasks)
         "thumbnail": thumbnail,
         "length": req.length,
         "subtitles": req.subtitles,
+        "bgm": req.bgm,
+        "sfx": req.sfx,
         "crop_mode": req.crop_mode,
         "created_at": time.time(),
         "clips": [],
@@ -238,6 +249,8 @@ async def upload_and_create_task(
     file: UploadFile = File(...),
     length: str = Form("medium"),
     subtitles: bool = Form(True),
+    bgm: bool = Form(True),
+    sfx: bool = Form(True),
     crop_mode: str = Form("blur_fill")
 ):
     task_id = str(uuid.uuid4())
@@ -261,6 +274,8 @@ async def upload_and_create_task(
         "thumbnail": None,
         "length": length,
         "subtitles": subtitles,
+        "bgm": bgm,
+        "sfx": sfx,
         "crop_mode": crop_mode,
         "created_at": time.time(),
         "clips": [],

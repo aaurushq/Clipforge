@@ -21,6 +21,9 @@ interface ClipItem {
   value_score: number;
   shareability_score: number;
   hook_type: string;
+  mood?: string;
+  bgm_description?: string;
+  sfx_cues?: any[];
   reasoning: string;
 }
 
@@ -122,6 +125,22 @@ export function VideoModal({
                 ))}
               </div>
             </div>
+
+            {/* AI Mood & Soundtrack Details */}
+            {clip.mood && (
+              <div className="rounded-xl border border-white/10 bg-white/[0.02] p-3.5 text-xs">
+                <div className="flex items-center justify-between">
+                  <span className="font-semibold text-zinc-300">🎵 Auto Mood Soundtrack</span>
+                  <span className="rounded-full bg-brand/20 px-2 py-0.5 font-bold uppercase tracking-wider text-brand">
+                    {clip.mood}
+                  </span>
+                </div>
+                <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-muted-foreground">
+                  <span>🎶 Track: <strong className="text-white">{clip.bgm_description || "Dynamic Beat"}</strong></span>
+                  <span>🔊 SFX: <strong className="text-white">{clip.sfx_cues?.length || 0} Cues Mixed</strong></span>
+                </div>
+              </div>
+            )}
 
             {/* AI Reasoning */}
             <div className="space-y-2">

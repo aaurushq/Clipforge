@@ -65,6 +65,10 @@ You must score each clip based on:
 - value_score (1-25)
 - shareability_score (1-25)
 - hook_type ("Shock", "Curiosity", "Question", "Controversy", "Story", "Punchline")
+- mood: Exactly one of ["energetic", "dramatic", "funny", "motivational", "chill"] reflecting the emotional tone of the clip.
+- bgm_description: Short 2-3 word label for matching background music (e.g. "Hype Synthwave", "Tense Drone", "Playful Bounce").
+- sfx_cues: Array of sound effect placements relative to the clip start (0.0 to clip duration). Types allowed: ["whoosh", "pop", "boom", "ding"].
+  Example: [{"type": "whoosh", "offset": 0.4}, {"type": "boom", "offset": 12.8}]
 
 Respond with ONLY a raw JSON array of objects, with NO markdown formatting, no backticks, no markdown codeblocks."""
 
@@ -89,6 +93,12 @@ Output JSON format:
     "value_score": 23,
     "shareability_score": 24,
     "hook_type": "Shock",
+    "mood": "energetic",
+    "bgm_description": "Hype Synth Beat",
+    "sfx_cues": [
+      {{"type": "whoosh", "offset": 0.5}},
+      {{"type": "boom", "offset": 14.2}}
+    ],
     "reasoning": "Clear explanation of why this clip will hook viewers and retain audience attention."
   }}
 ]"""
