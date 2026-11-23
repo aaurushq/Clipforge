@@ -40,6 +40,8 @@ export default function HomePage() {
   const [subtitles, setSubtitles] = useState(true);
   const [bgm, setBgm] = useState(true);
   const [sfx, setSfx] = useState(true);
+  const [effects, setEffects] = useState(true);
+  const [transitions, setTransitions] = useState(true);
   const [cropMode, setCropMode] = useState<"blur_fill" | "center_crop">("blur_fill");
   const [showSettings, setShowSettings] = useState(false);
 
@@ -95,6 +97,8 @@ export default function HomePage() {
         formData.append("subtitles", String(subtitles));
         formData.append("bgm", String(bgm));
         formData.append("sfx", String(sfx));
+        formData.append("effects", String(effects));
+        formData.append("transitions", String(transitions));
         formData.append("crop_mode", cropMode);
 
         const res = await fetch("/api/tasks/upload", {
@@ -120,6 +124,8 @@ export default function HomePage() {
             subtitles,
             bgm,
             sfx,
+            effects,
+            transitions,
             crop_mode: cropMode,
           }),
         });
@@ -135,7 +141,11 @@ export default function HomePage() {
 
       router.push(`/tasks/${createdTaskId}`);
     } catch (err: any) {
-      setError(err.message || "An error occurred while creating the task.");
+      if (err.message === "Failed to fetch" || err.message?.includes("fetch")) {
+        setError("Backend server is offline or not responding. Please run start.bat to launch ClipForge servers.");
+      } else {
+        setError(err.message || "An error occurred while creating the task.");
+      }
       setIsSubmitting(false);
     }
   };
@@ -249,9 +259,11 @@ export default function HomePage() {
                   <SlidersHorizontal className="size-3.5 text-brand" />
                   <span>
                     {length === "short" ? "Short (15–30s)" : length === "long" ? "Long (60–90s)" : "Medium (30–60s)"} ·{" "}
-                    Captions: {subtitles ? "Default" : "Off"}
+                    Captions: {subtitles ? "Hinglish/English" : "Off"}
                     {bgm ? " · 🎵 BGM" : ""}
-                    {sfx ? " · 🔊 SFX" : ""} · 9:16
+                    {sfx ? " · 🔊 SFX" : ""}
+                    {effects ? " · ⚡ FX" : ""}
+                    {transitions ? " · ✨ Trans" : ""} · 9:16
                   </span>
                   <ChevronDown className="size-3 text-muted-foreground" />
                 </button>
@@ -285,7 +297,10 @@ export default function HomePage() {
 
                       {/* Captions */}
                       <div className="flex items-center justify-between border-t border-white/5 pt-3">
-                        <span className="text-xs font-medium text-zinc-300">Animated Captions</span>
+                        <div>
+                          <span className="block text-xs font-medium text-zinc-300">Animated Captions</span>
+                          <span className="block text-[10px] text-muted-foreground">Auto: Hinglish for Hindi · English for English</span>
+                        </div>
                         <button
                           type="button"
                           onClick={() => setSubtitles(!subtitles)}
@@ -338,6 +353,48 @@ export default function HomePage() {
                           <span
                             className={`block size-4 rounded-full bg-white transition-transform ${
                               sfx ? "translate-x-4" : "translate-x-0.5"
+                            }`}
+                          />
+                        </button>
+                      </div>
+
+                      {/* Visual Effects (Dynamic Zooms & Progress Bar) */}
+                      <div className="flex items-center justify-between border-t border-white/5 pt-3">
+                        <div>
+                          <span className="block text-xs font-medium text-zinc-300">⚡ Dynamic Zooms & Progress Bar</span>
+                          <span className="block text-[10px] text-muted-foreground">Attention-hook punch zoom & bottom timer bar</span>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => setEffects(!effects)}
+                          className={`h-5 w-9 rounded-full transition-colors ${
+                            effects ? "bg-brand" : "bg-white/20"
+                          } relative`}
+                        >
+                          <span
+                            className={`block size-4 rounded-full bg-white transition-transform ${
+                              effects ? "translate-x-4" : "translate-x-0.5"
+                            }`}
+                          />
+                        </button>
+                      </div>
+
+                      {/* Transitions (Hook Flash & Fade) */}
+                      <div className="flex items-center justify-between border-t border-white/5 pt-3">
+                        <div>
+                          <span className="block text-xs font-medium text-zinc-300">✨ Hook Transitions & Flash</span>
+                          <span className="block text-[10px] text-muted-foreground">Clean opening hook scene transitions</span>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => setTransitions(!transitions)}
+                          className={`h-5 w-9 rounded-full transition-colors ${
+                            transitions ? "bg-brand" : "bg-white/20"
+                          } relative`}
+                        >
+                          <span
+                            className={`block size-4 rounded-full bg-white transition-transform ${
+                              transitions ? "translate-x-4" : "translate-x-0.5"
                             }`}
                           />
                         </button>

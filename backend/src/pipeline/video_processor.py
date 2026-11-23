@@ -20,18 +20,22 @@ def cut_and_render_clip(
     crop_mode: str = "blur_fill",  # "blur_fill" or "center_crop"
     add_bgm: bool = True,
     add_sfx: bool = True,
+    add_effects: bool = True,
+    add_transitions: bool = True,
     mood: str = "energetic",
     sfx_cues: Optional[List[Dict[str, Any]]] = None
 ) -> Dict[str, Any]:
     """
-    Extracts clip from source, reframes to 9:16 (1080x1920), burns animated subtitles,
-    mixes mood-matched background music with audio ducking, and adds timed sound effects.
+    Extracts clip from source, reframes to 9:16 (1080x1920), applies visual effects & transitions,
+    burns animated subtitles, mixes mood-matched background music with audio ducking, and adds timed sound effects.
     """
     duration = max(1.0, end_time - start_time)
     out_path = Path(output_clip_path)
     out_path.parent.mkdir(parents=True, exist_ok=True)
 
     # 1. Video Filters
+    video_filters = []
+
     if crop_mode == "blur_fill":
         vf_base = (
             "[0:v]split=2[bg_in][fg_in];"
@@ -39,18 +43,42 @@ def cut_and_render_clip(
             "[fg_in]scale=1080:1920:force_original_aspect_ratio=decrease[fg];"
             "[bg][fg]overlay=(W-w)/2:(H-h)/2[base]"
         )
-        current_v = "[base]"
     else:
         vf_base = "[0:v]crop=ih*9/16:ih:(iw-ow)/2:0,scale=1080:1920[base]"
-        current_v = "[base]"
+    
+    video_filters.append(vf_base)
+    current_v = "[base]"
 
+    # Visual Effects: Dynamic punch-in zoom
+    if add_effects:
+        video_filters.append(
+            f"{current_v}crop=w='if(mod(t,5)<2.5, 1080, 1080*0.93)':h='if(mod(t,5)<2.5, 1920, 1920*0.93)':x='(1080-out_w)/2':y='(1920-out_h)/2',scale=1080:1920[zoomed]"
+        )
+        current_v = "[zoomed]"
+
+    # Transitions: Smooth hook opening fade-in
+    if add_transitions:
+        video_filters.append(
+            f"{current_v}fade=t=in:st=0:d=0.3[faded]"
+        )
+        current_v = "[faded]"
+
+    # Subtitles
     if subtitle_ass_path and Path(subtitle_ass_path).exists():
         clean_ass = str(subtitle_ass_path).replace("\\", "/").replace(":", "\\:")
-        vf_filter = f"{vf_base};{current_v}ass='{clean_ass}'[outv]"
+        video_filters.append(f"{current_v}ass='{clean_ass}'[subbed]")
+        current_v = "[subbed]"
+
+    # Visual Effects: Animated bottom progress bar
+    if add_effects:
+        video_filters.append(
+            f"{current_v}drawbox=x=0:y=1920-8:w='(t/{duration})*1080':h=8:color=0xf95738@1:t=fill[outv]"
+        )
         map_v = "[outv]"
     else:
-        vf_filter = f"{vf_base}"
         map_v = current_v
+
+    vf_filter = ";".join(video_filters)
 
     # 2. Audio Processing & Inputs
     extra_inputs = []

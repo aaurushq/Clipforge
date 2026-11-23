@@ -40,6 +40,8 @@ class TaskCreateRequest(BaseModel):
     subtitles: bool = True
     bgm: bool = True
     sfx: bool = True
+    effects: bool = True
+    transitions: bool = True
     aspect_ratio: str = "9:16"
     crop_mode: str = "blur_fill"
 
@@ -152,6 +154,8 @@ async def run_clipping_pipeline(task_id: str):
                 crop_mode=task.get("crop_mode", "blur_fill"),
                 add_bgm=task.get("bgm", True),
                 add_sfx=task.get("sfx", True),
+                add_effects=task.get("effects", True),
+                add_transitions=task.get("transitions", True),
                 mood=clip_info.get("mood", "energetic"),
                 sfx_cues=clip_info.get("sfx_cues", [])
             )
@@ -232,6 +236,8 @@ async def create_task(req: TaskCreateRequest, background_tasks: BackgroundTasks)
         "subtitles": req.subtitles,
         "bgm": req.bgm,
         "sfx": req.sfx,
+        "effects": req.effects,
+        "transitions": req.transitions,
         "crop_mode": req.crop_mode,
         "created_at": time.time(),
         "clips": [],
@@ -251,6 +257,8 @@ async def upload_and_create_task(
     subtitles: bool = Form(True),
     bgm: bool = Form(True),
     sfx: bool = Form(True),
+    effects: bool = Form(True),
+    transitions: bool = Form(True),
     crop_mode: str = Form("blur_fill")
 ):
     task_id = str(uuid.uuid4())
@@ -276,6 +284,8 @@ async def upload_and_create_task(
         "subtitles": subtitles,
         "bgm": bgm,
         "sfx": sfx,
+        "effects": effects,
+        "transitions": transitions,
         "crop_mode": crop_mode,
         "created_at": time.time(),
         "clips": [],

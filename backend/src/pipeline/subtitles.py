@@ -1,5 +1,6 @@
 from typing import List, Dict, Any
 from pathlib import Path
+from src.pipeline.caption_transliterator import transliterate_to_hinglish_if_needed
 
 def format_ass_time(seconds: float) -> str:
     """Format seconds into ASS timestamp format: H:MM:SS.cs"""
@@ -23,10 +24,13 @@ def generate_ass_subtitles(
     Each phrase is 3-5 words, highlighting the current word as spoken in vivid yellow.
     """
     # Filter words inside the clip duration
-    clip_words = [
+    raw_clip_words = [
         w for w in words
         if w["start"] >= (clip_start - 0.2) and w["end"] <= (clip_end + 0.5)
     ]
+
+    # Convert Hindi words to Roman Hinglish; keep English as English
+    clip_words = transliterate_to_hinglish_if_needed(raw_clip_words)
 
     # Re-normalize timestamps relative to clip start (0.0s)
     normalized_words = []
