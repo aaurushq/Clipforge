@@ -1,0 +1,82 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --radius: 0.75rem;
+  --brand: #f95738;
+  --brand-foreground: #ffffff;
+  --brand-soft: #fff1ee;
+  --background: #ffffff;
+  --foreground: #0d0f12;
+  --card: #ffffff;
+  --card-foreground: #0d0f12;
+  --muted: #f4f5f7;
+  --muted-foreground: #6b7280;
+  --border: #e5e7eb;
+}
+
+.dark {
+  --radius: 0.75rem;
+  --brand: #f95738;
+  --brand-foreground: #ffffff;
+  --brand-soft: #2b1712;
+  --background: #090a0f;
+  --foreground: #f3f4f6;
+  --card: #12141a;
+  --card-foreground: #f3f4f6;
+  --muted: #1c1f26;
+  --muted-foreground: #9ca3af;
+  --border: rgba(255, 255, 255, 0.08);
+}
+
+body {
+  background-color: var(--background);
+  color: var(--foreground);
+  font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  overflow-x: hidden;
+}
+
+/* SupoClip Signature Metal-Flow Animated Progress Bar */
+@keyframes metal-flow {
+  0% { background-position: 0% 50%; }
+  100% { background-position: 200% 50%; }
+}
+
+.metal-flow {
+  background: linear-gradient(
+    90deg,
+    #f95738 0%,
+    #e040fb 25%,
+    #00e5ff 50%,
+    #00e676 75%,
+    #f95738 100%
+  );
+  background-size: 200% 100%;
+  animation: metal-flow 6s linear infinite;
+}
+
+/* Ambient glow blob behind progress bar */
+.aura-blob {
+  position: absolute;
+  filter: blur(50px);
+  pointer-events: none;
+  opacity: 0.25;
+  transition: all 1s ease;
+}
+
+/* Card and item rise animation */
+@keyframes rise-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-rise {
+  animation: rise-in 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
