@@ -52,7 +52,7 @@ def cut_and_render_clip(
     # Visual Effects: Dynamic punch-in zoom
     if add_effects:
         video_filters.append(
-            f"{current_v}crop=w='if(mod(t,5)<2.5, 1080, 1080*0.93)':h='if(mod(t,5)<2.5, 1920, 1920*0.93)':x='(1080-out_w)/2':y='(1920-out_h)/2',scale=1080:1920[zoomed]"
+            f"{current_v}crop=w='1080-80*gt(mod(t,5),2.5)':h='1920-142*gt(mod(t,5),2.5)':x='(1080-out_w)/2':y='(1920-out_h)/2',scale=1080:1920[zoomed]"
         )
         current_v = "[zoomed]"
 
@@ -153,7 +153,8 @@ def cut_and_render_clip(
     try:
         subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True)
     except subprocess.CalledProcessError as e:
-        # Fallback without audio mixing if source has audio issues
+        print(f"Primary render failed (exit {e.returncode}): {e.stderr.decode('utf-8', errors='ignore')[-400:]}")
+        # Fallback without audio mixing if complex audio has issues
         fallback_cmd = [
             "ffmpeg", "-y",
             "-ss", str(start_time),
@@ -169,7 +170,33 @@ def cut_and_render_clip(
             "-b:a", "192k",
             str(out_path)
         ]
-        subprocess.run(fallback_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True)
+        try:
+            subprocess.run(fallback_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True)
+        except subprocess.CalledProcessError as e2:
+            print(f"Fallback render failed: {e2.stderr.decode('utf-8', errors='ignore')[-400:]}")
+            # Ultra-safe baseline: basic 9:16 reframe + ass subtitles only
+            safe_vf = vf_base
+            if subtitle_ass_path and Path(subtitle_ass_path).exists():
+                clean_ass = str(subtitle_ass_path).replace("\\", "/").replace(":", "\\:")
+                safe_vf = f"{vf_base};[base]ass='{clean_ass}'[outv]"
+                map_v_safe = "[outv]"
+            else:
+                map_v_safe = "[base]"
+            safe_cmd = [
+                "ffmpeg", "-y",
+                "-ss", str(start_time),
+                "-to", str(end_time),
+                "-i", source_video_path,
+                "-filter_complex", safe_vf,
+                "-map", map_v_safe,
+                "-map", "0:a?",
+                "-c:v", "libx264",
+                "-preset", "veryfast",
+                "-crf", "22",
+                "-c:a", "aac",
+                str(out_path)
+            ]
+            subprocess.run(safe_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True)
 
     # 3. Generate thumbnail image
     thumb_path = out_path.with_suffix(".jpg")
