@@ -100,14 +100,14 @@ export default function TaskPage() {
       <div>
         <Link
           href="/"
-          className="inline-flex items-center gap-1.5 text-xs font-medium text-muted-foreground transition hover:text-white"
+          className="inline-flex items-center gap-1.5 text-xs font-medium text-muted-foreground transition hover:text-foreground"
         >
           <ArrowLeft className="size-3.5" /> Library
         </Link>
 
         <div className="mt-3 flex flex-wrap items-center justify-between gap-4">
           <div className="space-y-1">
-            <h1 className="font-display text-2xl font-bold tracking-tight text-white sm:text-3xl">
+            <h1 className="font-display text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
               {task.title || "Processing Video"}
             </h1>
             <div className="flex items-center gap-2 text-xs text-muted-foreground">
@@ -133,7 +133,7 @@ export default function TaskPage() {
           {isFailed && (
             <button
               onClick={() => router.push("/")}
-              className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-xs font-medium text-white hover:bg-white/10"
+              className="inline-flex items-center gap-2 rounded-xl border border-border bg-muted/80 px-4 py-2 text-xs font-medium text-foreground hover:bg-muted"
             >
               <RotateCcw className="size-3.5" /> Try Again
             </button>
@@ -143,12 +143,12 @@ export default function TaskPage() {
 
       {/* State 1: Active Processing Progress Panel */}
       {!isCompleted && !isFailed && (
-        <section className="relative isolate rounded-2xl border border-white/10 bg-[#12141a] p-6 shadow-2xl sm:p-8">
+        <section className="relative isolate rounded-2xl border border-border bg-card p-6 shadow-xl sm:p-8">
           {/* Ambient Glow Blob */}
-          <div className="aura-blob -top-12 left-1/4 h-56 w-80 rounded-full bg-brand/30" />
+          <div className="aura-blob -top-12 left-1/4 h-56 w-80 rounded-full bg-brand/20 dark:bg-brand/30" />
 
           <div className="flex items-baseline justify-between">
-            <h2 className="font-display text-2xl font-bold tracking-tight text-white sm:text-3xl">
+            <h2 className="font-display text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
               {task.message || "Generating clips..."}
             </h2>
             <span className="text-sm font-semibold tabular-nums text-brand">
@@ -157,7 +157,7 @@ export default function TaskPage() {
           </div>
 
           {/* Metal-Flow Iridescent Progress Bar */}
-          <div className="mt-6 h-2.5 w-full overflow-hidden rounded-full bg-white/10">
+          <div className="mt-6 h-2.5 w-full overflow-hidden rounded-full bg-muted">
             <div
               className="metal-flow h-full rounded-full transition-all duration-700 ease-out"
               style={{ width: `${Math.max(progress, 3)}%` }}
@@ -174,18 +174,18 @@ export default function TaskPage() {
                   key={step.id}
                   className={`flex items-center gap-1.5 truncate ${
                     isCurrent
-                      ? "font-semibold text-white"
+                      ? "font-semibold text-foreground"
                       : isPast
-                      ? "text-zinc-400"
-                      : "text-zinc-600"
+                      ? "text-muted-foreground"
+                      : "text-muted-foreground/60"
                   }`}
                 >
                   {isPast ? (
-                    <Check className="size-3.5 shrink-0 text-emerald-400" />
+                    <Check className="size-3.5 shrink-0 text-emerald-500" />
                   ) : isCurrent ? (
                     <Loader2 className="size-3.5 shrink-0 animate-spin text-brand" />
                   ) : (
-                    <span className="size-1.5 rounded-full bg-zinc-700" />
+                    <span className="size-1.5 rounded-full bg-muted-foreground/30" />
                   )}
                   <span className="truncate">{step.label}</span>
                 </div>
@@ -201,11 +201,11 @@ export default function TaskPage() {
           <div className="mt-10 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
             {[0, 1, 2, 3, 4].map((i) => (
               <div key={i} className="animate-rise space-y-2">
-                <div className="relative aspect-[9/16] overflow-hidden rounded-xl bg-white/[0.03] ring-1 ring-white/10">
-                  <div className="absolute inset-0 animate-pulse bg-gradient-to-t from-white/5 to-transparent" />
+                <div className="relative aspect-[9/16] overflow-hidden rounded-xl bg-muted/40 ring-1 ring-border">
+                  <div className="absolute inset-0 animate-pulse bg-gradient-to-t from-muted to-transparent" />
                 </div>
-                <div className="h-3 w-4/5 rounded bg-white/10" />
-                <div className="h-2.5 w-1/2 rounded bg-white/5" />
+                <div className="h-3 w-4/5 rounded bg-muted" />
+                <div className="h-2.5 w-1/2 rounded bg-muted/60" />
               </div>
             ))}
           </div>
@@ -215,17 +215,17 @@ export default function TaskPage() {
       {/* State 2: Failed View */}
       {isFailed && (
         <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-rose-500/30 bg-rose-500/5 p-12 text-center">
-          <div className="flex size-14 items-center justify-center rounded-2xl bg-rose-500/10 text-rose-400">
+          <div className="flex size-14 items-center justify-center rounded-2xl bg-rose-500/10 text-rose-500">
             <AlertTriangle className="size-7" />
           </div>
-          <h2 className="mt-4 text-lg font-bold text-white">Processing Failed</h2>
-          <p className="mt-2 max-w-md text-sm text-rose-300/80">
+          <h2 className="mt-4 text-lg font-bold text-foreground">Processing Failed</h2>
+          <p className="mt-2 max-w-md text-sm text-rose-600 dark:text-rose-300/80">
             {task.error || "Something went wrong while processing the video."}
           </p>
           <div className="mt-6 flex gap-3">
             <Link
               href="/"
-              className="rounded-xl bg-white/10 px-4 py-2 text-xs font-semibold text-white hover:bg-white/15"
+              className="rounded-xl border border-border bg-card px-4 py-2 text-xs font-semibold text-foreground hover:bg-muted"
             >
               Back to Home
             </Link>
@@ -237,7 +237,7 @@ export default function TaskPage() {
       {isCompleted && (
         <section className="space-y-6">
           <div className="flex items-center justify-between">
-            <h2 className="font-display text-xl font-bold tracking-tight text-white">
+            <h2 className="font-display text-xl font-bold tracking-tight text-foreground">
               Generated Clips ({clips.length})
             </h2>
           </div>
@@ -252,7 +252,7 @@ export default function TaskPage() {
                   className="group animate-rise cursor-pointer space-y-2.5"
                 >
                   {/* 9:16 Video Thumbnail Box */}
-                  <div className="relative aspect-[9/16] overflow-hidden rounded-xl bg-black ring-1 ring-white/10 transition-all duration-300 group-hover:ring-brand/50 group-hover:shadow-2xl">
+                  <div className="relative aspect-[9/16] overflow-hidden rounded-xl bg-black ring-1 ring-border transition-all duration-300 group-hover:ring-brand/50 group-hover:shadow-2xl">
                     <img
                       src={clip.thumbnail_url}
                       alt={clip.title}
@@ -289,7 +289,7 @@ export default function TaskPage() {
 
                   {/* Title & Metadata */}
                   <div className="space-y-1 px-1">
-                    <h3 className="line-clamp-2 text-sm font-semibold leading-snug text-white group-hover:text-brand">
+                    <h3 className="line-clamp-2 text-sm font-semibold leading-snug text-foreground group-hover:text-brand">
                       {clip.hook_title || clip.title}
                     </h3>
                     <div className="flex items-center justify-between text-xs text-muted-foreground">

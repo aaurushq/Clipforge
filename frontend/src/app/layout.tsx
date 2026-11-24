@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 export const metadata: Metadata = {
   title: "ClipForge — Turn Long Videos into Viral Shorts & Reels",
@@ -12,7 +13,23 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="dark" suppressHydrationWarning>
+    <html lang="en" suppressHydrationWarning>
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              try {
+                const t = localStorage.getItem('clipforge_theme');
+                if (t === 'dark') {
+                  document.documentElement.classList.add('dark');
+                } else {
+                  document.documentElement.classList.remove('dark');
+                }
+              } catch (_) {}
+            `,
+          }}
+        />
+      </head>
       <body className="min-h-screen bg-background text-foreground antialiased selection:bg-brand selection:text-white" suppressHydrationWarning>
         {/* Navigation Bar */}
         <header className="sticky top-0 z-50 w-full border-b border-border bg-background/80 backdrop-blur-md">
@@ -24,13 +41,14 @@ export default function RootLayout({
               <span>Clip<span className="text-brand">Forge</span></span>
             </a>
 
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-3">
               <a href="/#recent-heading" className="text-sm font-medium text-muted-foreground transition hover:text-foreground">
                 Library
               </a>
               <span className="rounded-full bg-brand/10 px-2.5 py-0.5 text-xs font-semibold text-brand">
                 Pro
               </span>
+              <ThemeToggle />
             </div>
           </div>
         </header>

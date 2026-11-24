@@ -163,7 +163,7 @@ export default function HomePage() {
       <div className="relative mt-8 w-full max-w-3xl">
         <form
           onSubmit={handleSubmit}
-          className="relative rounded-2xl border border-white/10 bg-[#12141a] p-3 shadow-[0_1px_2px_rgb(0_0_0/0.04),0_12px_40px_-12px_rgb(0_0_0/0.25)] transition-all focus-within:border-white/20 sm:p-4"
+          className="relative rounded-2xl border border-border bg-card p-3 shadow-lg transition-all focus-within:border-brand/40 sm:p-4"
         >
           {/* Top row: Video thumbnail + Input */}
           <div className="flex items-center gap-3">
@@ -175,10 +175,10 @@ export default function HomePage() {
               <img
                 src={ytThumb}
                 alt="Thumbnail"
-                className="size-11 shrink-0 rounded-lg object-cover ring-1 ring-white/10"
+                className="size-11 shrink-0 rounded-lg object-cover ring-1 ring-border"
               />
             ) : (
-              <div className="flex size-11 shrink-0 items-center justify-center rounded-lg bg-white/5 text-muted-foreground">
+              <div className="flex size-11 shrink-0 items-center justify-center rounded-lg bg-muted text-muted-foreground">
                 <Film className="size-5" />
               </div>
             )}
@@ -187,7 +187,7 @@ export default function HomePage() {
               {file ? (
                 <div className="flex items-center justify-between pr-2">
                   <div className="min-w-0">
-                    <p className="truncate text-sm font-medium text-white">{file.name}</p>
+                    <p className="truncate text-sm font-medium text-foreground">{file.name}</p>
                     <p className="text-xs text-muted-foreground">
                       {(file.size / 1024 / 1024).toFixed(1)} MB · Ready to clip
                     </p>
@@ -195,7 +195,7 @@ export default function HomePage() {
                   <button
                     type="button"
                     onClick={() => setFile(null)}
-                    className="rounded-md p-1 text-muted-foreground hover:bg-white/10 hover:text-white"
+                    className="rounded-md p-1 text-muted-foreground hover:bg-muted hover:text-foreground"
                   >
                     <X className="size-4" />
                   </button>
@@ -214,7 +214,7 @@ export default function HomePage() {
                     }
                   }}
                   placeholder="Paste a YouTube link or drop a file"
-                  className="h-11 w-full bg-transparent text-base text-white outline-none placeholder:text-muted-foreground/70"
+                  className="h-11 w-full bg-transparent text-base text-foreground outline-none placeholder:text-muted-foreground/70"
                 />
               )}
             </div>
@@ -235,14 +235,14 @@ export default function HomePage() {
           />
 
           {/* Bottom Controls Row */}
-          <div className="mt-4 flex flex-wrap items-center justify-between gap-2 border-t border-white/5 pt-3">
+          <div className="mt-4 flex flex-wrap items-center justify-between gap-2 border-t border-border/60 pt-3">
             <div className="flex items-center gap-2">
               {/* Upload Button */}
               {!file && (
                 <button
                   type="button"
                   onClick={() => fileInputRef.current?.click()}
-                  className="inline-flex h-8 items-center gap-1.5 rounded-full border border-white/10 bg-white/5 px-3 text-xs font-medium text-zinc-300 transition hover:bg-white/10 hover:text-white"
+                  className="inline-flex h-8 items-center gap-1.5 rounded-full border border-border bg-muted/80 px-3 text-xs font-medium text-foreground transition hover:bg-muted hover:text-foreground"
                 >
                   <Paperclip className="size-3.5" />
                   <span>Upload</span>
@@ -254,7 +254,7 @@ export default function HomePage() {
                 <button
                   type="button"
                   onClick={() => setShowSettings(!showSettings)}
-                  className="inline-flex h-8 items-center gap-1.5 rounded-full border border-white/10 bg-white/5 px-3 text-xs font-medium text-zinc-300 transition hover:bg-white/10 hover:text-white"
+                  className="inline-flex h-8 items-center gap-1.5 rounded-full border border-border bg-muted/80 px-3 text-xs font-medium text-foreground transition hover:bg-muted hover:text-foreground"
                 >
                   <SlidersHorizontal className="size-3.5 text-brand" />
                   <span>
@@ -270,7 +270,7 @@ export default function HomePage() {
 
                 {/* Settings Popover */}
                 {showSettings && (
-                  <div className="absolute left-0 top-10 z-30 w-72 rounded-2xl border border-white/10 bg-[#161820] p-4 shadow-2xl backdrop-blur-md">
+                  <div className="absolute left-0 top-10 z-30 w-72 rounded-2xl border border-border bg-card p-4 shadow-2xl backdrop-blur-md">
                     <div className="space-y-4">
                       {/* Length */}
                       <div>
@@ -286,7 +286,7 @@ export default function HomePage() {
                               className={`rounded-lg py-1.5 text-xs font-medium transition ${
                                 length === l
                                   ? "bg-brand text-white"
-                                  : "bg-white/5 text-zinc-300 hover:bg-white/10"
+                                  : "bg-muted text-foreground hover:bg-muted/80"
                               }`}
                             >
                               {l === "short" ? "15-30s" : l === "medium" ? "30-60s" : "60-90s"}
@@ -296,16 +296,16 @@ export default function HomePage() {
                       </div>
 
                       {/* Captions */}
-                      <div className="flex items-center justify-between border-t border-white/5 pt-3">
+                      <div className="flex items-center justify-between border-t border-border/60 pt-3">
                         <div>
-                          <span className="block text-xs font-medium text-zinc-300">Animated Captions</span>
+                          <span className="block text-xs font-medium text-foreground">Animated Captions</span>
                           <span className="block text-[10px] text-muted-foreground">Auto: Hinglish for Hindi · English for English</span>
                         </div>
                         <button
                           type="button"
                           onClick={() => setSubtitles(!subtitles)}
                           className={`h-5 w-9 rounded-full transition-colors ${
-                            subtitles ? "bg-brand" : "bg-white/20"
+                            subtitles ? "bg-brand" : "bg-muted-foreground/30"
                           } relative`}
                         >
                           <span
@@ -317,16 +317,16 @@ export default function HomePage() {
                       </div>
 
                       {/* Auto BGM */}
-                      <div className="flex items-center justify-between border-t border-white/5 pt-3">
+                      <div className="flex items-center justify-between border-t border-border/60 pt-3">
                         <div>
-                          <span className="block text-xs font-medium text-zinc-300">Auto BGM (Mood-Matched)</span>
+                          <span className="block text-xs font-medium text-foreground">Auto BGM (Mood-Matched)</span>
                           <span className="block text-[10px] text-muted-foreground">Smart audio ducking to 15%</span>
                         </div>
                         <button
                           type="button"
                           onClick={() => setBgm(!bgm)}
                           className={`h-5 w-9 rounded-full transition-colors ${
-                            bgm ? "bg-brand" : "bg-white/20"
+                            bgm ? "bg-brand" : "bg-muted-foreground/30"
                           } relative`}
                         >
                           <span
@@ -338,16 +338,16 @@ export default function HomePage() {
                       </div>
 
                       {/* Auto SFX */}
-                      <div className="flex items-center justify-between border-t border-white/5 pt-3">
+                      <div className="flex items-center justify-between border-t border-border/60 pt-3">
                         <div>
-                          <span className="block text-xs font-medium text-zinc-300">Auto SFX (Punches & Whooshes)</span>
+                          <span className="block text-xs font-medium text-foreground">Auto SFX (Punches & Whooshes)</span>
                           <span className="block text-[10px] text-muted-foreground">Accurately timed transition hits</span>
                         </div>
                         <button
                           type="button"
                           onClick={() => setSfx(!sfx)}
                           className={`h-5 w-9 rounded-full transition-colors ${
-                            sfx ? "bg-brand" : "bg-white/20"
+                            sfx ? "bg-brand" : "bg-muted-foreground/30"
                           } relative`}
                         >
                           <span
@@ -359,16 +359,16 @@ export default function HomePage() {
                       </div>
 
                       {/* Visual Effects (Dynamic Zooms & Progress Bar) */}
-                      <div className="flex items-center justify-between border-t border-white/5 pt-3">
+                      <div className="flex items-center justify-between border-t border-border/60 pt-3">
                         <div>
-                          <span className="block text-xs font-medium text-zinc-300">⚡ Dynamic Zooms & Progress Bar</span>
+                          <span className="block text-xs font-medium text-foreground">⚡ Dynamic Zooms & Progress Bar</span>
                           <span className="block text-[10px] text-muted-foreground">Attention-hook punch zoom & bottom timer bar</span>
                         </div>
                         <button
                           type="button"
                           onClick={() => setEffects(!effects)}
                           className={`h-5 w-9 rounded-full transition-colors ${
-                            effects ? "bg-brand" : "bg-white/20"
+                            effects ? "bg-brand" : "bg-muted-foreground/30"
                           } relative`}
                         >
                           <span
@@ -380,16 +380,16 @@ export default function HomePage() {
                       </div>
 
                       {/* Transitions (Hook Flash & Fade) */}
-                      <div className="flex items-center justify-between border-t border-white/5 pt-3">
+                      <div className="flex items-center justify-between border-t border-border/60 pt-3">
                         <div>
-                          <span className="block text-xs font-medium text-zinc-300">✨ Hook Transitions & Flash</span>
+                          <span className="block text-xs font-medium text-foreground">✨ Hook Transitions & Flash</span>
                           <span className="block text-[10px] text-muted-foreground">Clean opening hook scene transitions</span>
                         </div>
                         <button
                           type="button"
                           onClick={() => setTransitions(!transitions)}
                           className={`h-5 w-9 rounded-full transition-colors ${
-                            transitions ? "bg-brand" : "bg-white/20"
+                            transitions ? "bg-brand" : "bg-muted-foreground/30"
                           } relative`}
                         >
                           <span
@@ -401,7 +401,7 @@ export default function HomePage() {
                       </div>
 
                       {/* Framing */}
-                      <div className="border-t border-white/5 pt-3">
+                      <div className="border-t border-border/60 pt-3">
                         <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                           Framing Layout
                         </p>
@@ -411,8 +411,8 @@ export default function HomePage() {
                             onClick={() => setCropMode("blur_fill")}
                             className={`rounded-lg p-2 text-left transition ${
                               cropMode === "blur_fill"
-                                ? "border border-brand/50 bg-brand/10 text-white"
-                                : "bg-white/5 text-zinc-400 hover:bg-white/10"
+                                ? "border border-brand/50 bg-brand/10 text-foreground"
+                                : "bg-muted text-muted-foreground hover:bg-muted/80 hover:text-foreground"
                             }`}
                           >
                             <span className="font-semibold">Full 9:16</span>
@@ -423,8 +423,8 @@ export default function HomePage() {
                             onClick={() => setCropMode("center_crop")}
                             className={`rounded-lg p-2 text-left transition ${
                               cropMode === "center_crop"
-                                ? "border border-brand/50 bg-brand/10 text-white"
-                                : "bg-white/5 text-zinc-400 hover:bg-white/10"
+                                ? "border border-brand/50 bg-brand/10 text-foreground"
+                                : "bg-muted text-muted-foreground hover:bg-muted/80 hover:text-foreground"
                             }`}
                           >
                             <span className="font-semibold">Center Crop</span>
@@ -470,7 +470,7 @@ export default function HomePage() {
       {/* Recent Generations Section */}
       <section className="mt-16 w-full max-w-5xl md:mt-24" id="recent-heading">
         <div className="mb-6 flex items-center justify-between">
-          <h2 className="font-display text-lg font-bold tracking-tight text-white">
+          <h2 className="font-display text-lg font-bold tracking-tight text-foreground">
             Recent Generations
           </h2>
           {recentTasks.length > 0 && (
@@ -481,7 +481,7 @@ export default function HomePage() {
         </div>
 
         {!mounted || recentTasks.length === 0 ? (
-          <div className="rounded-2xl border border-dashed border-white/10 p-12 text-center text-sm text-muted-foreground">
+          <div className="rounded-2xl border border-dashed border-border p-12 text-center text-sm text-muted-foreground">
             No clips generated yet. Drop in a video link above to get started!
           </div>
         ) : (
@@ -490,10 +490,10 @@ export default function HomePage() {
               <a
                 key={t.id}
                 href={`/tasks/${t.id}`}
-                className="group relative flex flex-col overflow-hidden rounded-xl border border-white/10 bg-[#12141a] transition hover:border-brand/40 hover:shadow-xl"
+                className="group relative flex flex-col overflow-hidden rounded-xl border border-border bg-card transition hover:border-brand/40 hover:shadow-xl"
               >
                 {/* Thumbnail */}
-                <div className="relative aspect-video w-full overflow-hidden bg-black/50">
+                <div className="relative aspect-video w-full overflow-hidden bg-black/10 dark:bg-black/50">
                   {t.thumbnail ? (
                     <img
                       src={t.thumbnail}
@@ -512,17 +512,17 @@ export default function HomePage() {
 
                 {/* Details */}
                 <div className="flex flex-1 flex-col justify-between p-3.5">
-                  <h3 className="line-clamp-2 text-sm font-semibold text-white group-hover:text-brand">
+                  <h3 className="line-clamp-2 text-sm font-semibold text-foreground group-hover:text-brand">
                     {t.title}
                   </h3>
                   <div className="mt-3 flex items-center justify-between text-xs text-muted-foreground">
                     <span
                       className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold ${
                         t.status === "completed"
-                          ? "bg-emerald-500/10 text-emerald-400"
+                          ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
                           : t.status === "failed"
-                          ? "bg-rose-500/10 text-rose-400"
-                          : "bg-amber-500/10 text-amber-400"
+                          ? "bg-rose-500/10 text-rose-600 dark:text-rose-400"
+                          : "bg-amber-500/10 text-amber-600 dark:text-amber-400"
                       }`}
                     >
                       ● {t.status.charAt(0).toUpperCase() + t.status.slice(1)}
