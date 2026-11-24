@@ -37,6 +37,7 @@ export default function HomePage() {
 
   // Settings
   const [length, setLength] = useState<"short" | "medium" | "long">("medium");
+  const [aspectRatio, setAspectRatio] = useState<"9:16" | "16:9" | "1:1" | "4:5">("9:16");
   const [subtitles, setSubtitles] = useState(true);
   const [bgm, setBgm] = useState(true);
   const [sfx, setSfx] = useState(true);
@@ -99,6 +100,7 @@ export default function HomePage() {
         formData.append("sfx", String(sfx));
         formData.append("effects", String(effects));
         formData.append("transitions", String(transitions));
+        formData.append("aspect_ratio", aspectRatio);
         formData.append("crop_mode", cropMode);
 
         const res = await fetch("/api/tasks/upload", {
@@ -126,6 +128,7 @@ export default function HomePage() {
             sfx,
             effects,
             transitions,
+            aspect_ratio: aspectRatio,
             crop_mode: cropMode,
           }),
         });
@@ -259,11 +262,11 @@ export default function HomePage() {
                   <SlidersHorizontal className="size-3.5 text-brand" />
                   <span>
                     {length === "short" ? "Short (15–30s)" : length === "long" ? "Long (60–90s)" : "Medium (30–60s)"} ·{" "}
-                    Captions: {subtitles ? "Hinglish/English" : "Off"}
+                    {aspectRatio}
+                    {subtitles ? " · Captions" : ""}
                     {bgm ? " · 🎵 BGM" : ""}
                     {sfx ? " · 🔊 SFX" : ""}
                     {effects ? " · ⚡ FX" : ""}
-                    {transitions ? " · ✨ Trans" : ""} · 9:16
                   </span>
                   <ChevronDown className="size-3 text-muted-foreground" />
                 </button>
@@ -290,6 +293,35 @@ export default function HomePage() {
                               }`}
                             >
                               {l === "short" ? "15-30s" : l === "medium" ? "30-60s" : "60-90s"}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Aspect Ratio */}
+                      <div className="border-t border-border/60 pt-3">
+                        <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                          Aspect Ratio
+                        </p>
+                        <div className="grid grid-cols-4 gap-1">
+                          {[
+                            { id: "9:16", label: "9:16", sub: "Reels" },
+                            { id: "16:9", label: "16:9", sub: "YouTube" },
+                            { id: "1:1", label: "1:1", sub: "Square" },
+                            { id: "4:5", label: "4:5", sub: "IG Feed" },
+                          ].map((ar) => (
+                            <button
+                              key={ar.id}
+                              type="button"
+                              onClick={() => setAspectRatio(ar.id as any)}
+                              className={`flex flex-col items-center justify-center rounded-lg py-1.5 text-center transition ${
+                                aspectRatio === ar.id
+                                  ? "bg-brand text-white font-semibold"
+                                  : "bg-muted text-muted-foreground hover:bg-muted/80 hover:text-foreground"
+                              }`}
+                            >
+                              <span className="text-xs font-bold">{ar.label}</span>
+                              <span className="text-[9px] opacity-80">{ar.sub}</span>
                             </button>
                           ))}
                         </div>

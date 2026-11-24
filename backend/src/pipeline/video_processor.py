@@ -16,7 +16,7 @@ def cut_and_render_clip(
     end_time: float,
     output_clip_path: str,
     subtitle_ass_path: Optional[str] = None,
-    aspect_ratio: str = "9:16",
+    aspect_ratio: str = "9:16",     # "9:16", "16:9", "1:1", "4:5"
     crop_mode: str = "blur_fill",  # "blur_fill" or "center_crop"
     add_bgm: bool = True,
     add_sfx: bool = True,
@@ -26,33 +26,53 @@ def cut_and_render_clip(
     sfx_cues: Optional[List[Dict[str, Any]]] = None
 ) -> Dict[str, Any]:
     """
-    Extracts clip from source, reframes to 9:16 (1080x1920), applies visual effects & transitions,
+    Extracts clip from source, reframes to chosen aspect ratio (9:16, 16:9, 1:1, 4:5), applies visual effects & transitions,
     burns animated subtitles, mixes mood-matched background music with audio ducking, and adds timed sound effects.
     """
     duration = max(1.0, end_time - start_time)
     out_path = Path(output_clip_path)
     out_path.parent.mkdir(parents=True, exist_ok=True)
 
+    # Resolution mapping
+    aspect_map = {
+        "9:16": (1080, 1920),
+        "16:9": (1920, 1080),
+        "1:1": (1080, 1080),
+        "4:5": (1080, 1350)
+    }
+    target_w, target_h = aspect_map.get(aspect_ratio, (1080, 1920))
+
     # 1. Video Filters
     video_filters = []
 
     if crop_mode == "blur_fill":
         vf_base = (
-            "[0:v]split=2[bg_in][fg_in];"
-            "[bg_in]scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920,boxblur=25:20[bg];"
-            "[fg_in]scale=1080:1920:force_original_aspect_ratio=decrease[fg];"
-            "[bg][fg]overlay=(W-w)/2:(H-h)/2[base]"
+            f"[0:v]split=2[bg_in][fg_in];"
+            f"[bg_in]scale={target_w}:{target_h}:force_original_aspect_ratio=increase,crop={target_w}:{target_h},boxblur=25:20[bg];"
+            f"[fg_in]scale={target_w}:{target_h}:force_original_aspect_ratio=decrease[fg];"
+            f"[bg][fg]overlay=(W-w)/2:(H-h)/2[base]"
         )
     else:
-        vf_base = "[0:v]crop=ih*9/16:ih:(iw-ow)/2:0,scale=1080:1920[base]"
+        if aspect_ratio == "16:9":
+            vf_base = f"[0:v]crop=iw:iw*9/16:0:(ih-oh)/2,scale={target_w}:{target_h}[base]"
+        elif aspect_ratio == "1:1":
+            vf_base = f"[0:v]crop=min(iw\\,ih):min(iw\\,ih):(iw-ow)/2:(ih-oh)/2,scale={target_w}:{target_h}[base]"
+        elif aspect_ratio == "4:5":
+            vf_base = f"[0:v]crop=ih*4/5:ih:(iw-ow)/2:0,scale={target_w}:{target_h}[base]"
+        else: # 9:16
+            vf_base = f"[0:v]crop=ih*9/16:ih:(iw-ow)/2:0,scale={target_w}:{target_h}[base]"
     
     video_filters.append(vf_base)
     current_v = "[base]"
 
     # Visual Effects: Dynamic punch-in zoom
     if add_effects:
+        zoom_w = target_w - int(target_w * 0.08)
+        zoom_h = target_h - int(target_h * 0.08)
+        diff_w = target_w - zoom_w
+        diff_h = target_h - zoom_h
         video_filters.append(
-            f"{current_v}crop=w='1080-80*gt(mod(t,5),2.5)':h='1920-142*gt(mod(t,5),2.5)':x='(1080-out_w)/2':y='(1920-out_h)/2',scale=1080:1920[zoomed]"
+            f"{current_v}crop=w='{target_w}-({diff_w})*gt(mod(t,5),2.5)':h='{target_h}-({diff_h})*gt(mod(t,5),2.5)':x='({target_w}-out_w)/2':y='({target_h}-out_h)/2',scale={target_w}:{target_h}[zoomed]"
         )
         current_v = "[zoomed]"
 
@@ -72,7 +92,7 @@ def cut_and_render_clip(
     # Visual Effects: Animated bottom progress bar
     if add_effects:
         video_filters.append(
-            f"{current_v}drawbox=x=0:y=1920-8:w='(t/{duration})*1080':h=8:color=0xf95738@1:t=fill[outv]"
+            f"{current_v}drawbox=x=0:y={target_h}-8:w='(t/{duration})*{target_w}':h=8:color=0xf95738@1:t=fill[outv]"
         )
         map_v = "[outv]"
     else:

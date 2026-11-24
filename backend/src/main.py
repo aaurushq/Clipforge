@@ -42,8 +42,20 @@ class TaskCreateRequest(BaseModel):
     sfx: bool = True
     effects: bool = True
     transitions: bool = True
-    aspect_ratio: str = "9:16"
+    aspect_ratio: str = "9:16"  # "9:16", "16:9", "1:1", "4:5"
     crop_mode: str = "blur_fill"
+
+class ClipRerenderRequest(BaseModel):
+    start_seconds: float
+    end_seconds: float
+    aspect_ratio: str = "9:16"  # "9:16", "16:9", "1:1", "4:5"
+    crop_mode: str = "blur_fill"  # "blur_fill" or "center_crop"
+    subtitles: bool = True
+    bgm: bool = True
+    sfx: bool = True
+    effects: bool = True
+    transitions: bool = True
+    mood: str = "energetic"
 
 def update_task_progress(task_id: str, step: int, progress: float, message: str):
     if task_id in tasks_db:
@@ -85,6 +97,7 @@ async def run_clipping_pipeline(task_id: str):
         else:
             raise ValueError("No video URL or file provided.")
 
+        task["video_path"] = video_path
         update_task_progress(task_id, 0, 20.0, "Source video ready.")
 
         # ----------------- STEP 1: TRANSCRIBING -----------------
@@ -140,7 +153,8 @@ async def run_clipping_pipeline(task_id: str):
                     words=transcript_result.get("words", []),
                     clip_start=clip_info["start_time"],
                     clip_end=clip_info["end_time"],
-                    output_path=ass_file
+                    output_path=ass_file,
+                    aspect_ratio=task.get("aspect_ratio", "9:16")
                 )
 
             # 2. Reframe, burn subtitles, mix BGM & SFX, render MP4
@@ -151,6 +165,7 @@ async def run_clipping_pipeline(task_id: str):
                 end_time=clip_info["end_time"],
                 output_clip_path=out_clip_path,
                 subtitle_ass_path=ass_path,
+                aspect_ratio=task.get("aspect_ratio", "9:16"),
                 crop_mode=task.get("crop_mode", "blur_fill"),
                 add_bgm=task.get("bgm", True),
                 add_sfx=task.get("sfx", True),
@@ -176,7 +191,16 @@ async def run_clipping_pipeline(task_id: str):
                 "hook_title": clip_info.get("hook_title", f"Clip #{clip_num}"),
                 "start_time": f"{s_min:02d}:{s_sec:02d}",
                 "end_time": f"{e_min:02d}:{e_sec:02d}",
+                "start_seconds": clip_info["start_time"],
+                "end_seconds": clip_info["end_time"],
                 "duration": round(clip_info["end_time"] - clip_info["start_time"], 1),
+                "aspect_ratio": task.get("aspect_ratio", "9:16"),
+                "crop_mode": task.get("crop_mode", "blur_fill"),
+                "subtitles": task.get("subtitles", True),
+                "bgm": task.get("bgm", True),
+                "sfx": task.get("sfx", True),
+                "effects": task.get("effects", True),
+                "transitions": task.get("transitions", True),
                 "virality_score": clip_info.get("virality_score", 90),
                 "hook_score": clip_info.get("hook_score", 23),
                 "engagement_score": clip_info.get("engagement_score", 22),
@@ -238,6 +262,7 @@ async def create_task(req: TaskCreateRequest, background_tasks: BackgroundTasks)
         "sfx": req.sfx,
         "effects": req.effects,
         "transitions": req.transitions,
+        "aspect_ratio": req.aspect_ratio,
         "crop_mode": req.crop_mode,
         "created_at": time.time(),
         "clips": [],
@@ -259,6 +284,7 @@ async def upload_and_create_task(
     sfx: bool = Form(True),
     effects: bool = Form(True),
     transitions: bool = Form(True),
+    aspect_ratio: str = Form("9:16"),
     crop_mode: str = Form("blur_fill")
 ):
     task_id = str(uuid.uuid4())
@@ -277,6 +303,7 @@ async def upload_and_create_task(
         "progress": 0.0,
         "message": "File uploaded. Starting processing pipeline...",
         "local_file_path": str(dest_path),
+        "video_path": str(dest_path),
         "title": file.filename,
         "duration": 0,
         "thumbnail": None,
@@ -286,6 +313,7 @@ async def upload_and_create_task(
         "sfx": sfx,
         "effects": effects,
         "transitions": transitions,
+        "aspect_ratio": aspect_ratio,
         "crop_mode": crop_mode,
         "created_at": time.time(),
         "clips": [],
@@ -314,6 +342,93 @@ async def get_task_clips(task_id: str):
     if task_id not in tasks_db:
         raise HTTPException(status_code=404, detail="Task not found")
     return tasks_db[task_id].get("clips", [])
+
+@app.post("/api/tasks/{task_id}/clips/{clip_id}/rerender")
+async def rerender_clip(task_id: str, clip_id: str, req: ClipRerenderRequest):
+    if task_id not in tasks_db:
+        raise HTTPException(status_code=404, detail="Task not found")
+    
+    task = tasks_db[task_id]
+    clips = task.get("clips", [])
+    target_clip = next((c for c in clips if c["id"] == clip_id), None)
+    if not target_clip:
+        raise HTTPException(status_code=404, detail=f"Clip {clip_id} not found in task {task_id}")
+    
+    video_path = task.get("video_path") or task.get("local_file_path")
+    if not video_path or not Path(video_path).exists():
+        task_dir = UPLOAD_DIR / task_id
+        found_videos = (
+            list(task_dir.glob("*.mp4")) +
+            list(task_dir.glob("*.webm")) +
+            list(task_dir.glob("*.mkv")) +
+            list(task_dir.glob("*.mov"))
+        )
+        if found_videos:
+            video_path = str(found_videos[0])
+            task["video_path"] = video_path
+        else:
+            raise HTTPException(status_code=400, detail="Original source video file not found for re-rendering.")
+
+    task_clips_dir = CLIPS_DIR / task_id
+    task_clips_dir.mkdir(parents=True, exist_ok=True)
+    out_clip_name = f"{clip_id}.mp4"
+    out_clip_path = str(task_clips_dir / out_clip_name)
+
+    # 1. Subtitles if enabled
+    ass_path = None
+    if req.subtitles:
+        ass_file = task_clips_dir / f"{clip_id}.ass"
+        transcript_words = task.get("transcript", {}).get("words", [])
+        ass_path = generate_ass_subtitles(
+            words=transcript_words,
+            clip_start=req.start_seconds,
+            clip_end=req.end_seconds,
+            output_path=ass_file,
+            aspect_ratio=req.aspect_ratio
+        )
+
+    # 2. Render customized clip
+    await asyncio.to_thread(
+        cut_and_render_clip,
+        source_video_path=video_path,
+        start_time=req.start_seconds,
+        end_time=req.end_seconds,
+        output_clip_path=out_clip_path,
+        subtitle_ass_path=ass_path if req.subtitles else None,
+        aspect_ratio=req.aspect_ratio,
+        crop_mode=req.crop_mode,
+        add_bgm=req.bgm,
+        add_sfx=req.sfx,
+        add_effects=req.effects,
+        add_transitions=req.transitions,
+        mood=req.mood,
+        sfx_cues=target_clip.get("sfx_cues", [])
+    )
+
+    # 3. Update clip metadata
+    s_min = int(req.start_seconds // 60)
+    s_sec = int(req.start_seconds % 60)
+    e_min = int(req.end_seconds // 60)
+    e_sec = int(req.end_seconds % 60)
+    cache_bust = int(time.time())
+
+    target_clip["start_seconds"] = req.start_seconds
+    target_clip["end_seconds"] = req.end_seconds
+    target_clip["start_time"] = f"{s_min:02d}:{s_sec:02d}"
+    target_clip["end_time"] = f"{e_min:02d}:{e_sec:02d}"
+    target_clip["duration"] = round(req.end_seconds - req.start_seconds, 1)
+    target_clip["aspect_ratio"] = req.aspect_ratio
+    target_clip["crop_mode"] = req.crop_mode
+    target_clip["subtitles"] = req.subtitles
+    target_clip["bgm"] = req.bgm
+    target_clip["sfx"] = req.sfx
+    target_clip["effects"] = req.effects
+    target_clip["transitions"] = req.transitions
+    target_clip["mood"] = req.mood
+    target_clip["video_url"] = f"/api/clips/file/{task_id}/{out_clip_name}?v={cache_bust}"
+    target_clip["thumbnail_url"] = f"/api/clips/file/{task_id}/{clip_id}.jpg?v={cache_bust}"
+
+    return {"status": "success", "clip": target_clip}
 
 @app.get("/api/health")
 async def health_check():

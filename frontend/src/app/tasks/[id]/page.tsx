@@ -15,9 +15,11 @@ import {
   ExternalLink,
   Film,
   AlertTriangle,
+  Scissors,
 } from "lucide-react";
 import { ScoreRing } from "@/components/ScoreRing";
 import { VideoModal } from "@/components/VideoModal";
+import { ClipEditorModal } from "@/components/ClipEditorModal";
 
 const PIPELINE_STEPS = [
   { id: "fetching", label: "Fetching video", pct: 20 },
@@ -34,6 +36,21 @@ export default function TaskPage() {
   const [task, setTask] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [selectedClip, setSelectedClip] = useState<any>(null);
+  const [editingClip, setEditingClip] = useState<any>(null);
+
+  const handleClipUpdated = (updatedClip: any) => {
+    setTask((prev: any) => {
+      if (!prev) return prev;
+      const newClips = (prev.clips || []).map((c: any) =>
+        c.id === updatedClip.id ? updatedClip : c
+      );
+      return { ...prev, clips: newClips };
+    });
+    setEditingClip(updatedClip);
+    if (selectedClip && selectedClip.id === updatedClip.id) {
+      setSelectedClip(updatedClip);
+    }
+  };
 
   // Poll task status
   useEffect(() => {
@@ -245,14 +262,23 @@ export default function TaskPage() {
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
             {clips.map((clip: any) => {
               const isBest = clip.virality_score === maxScore && maxScore > 0;
+              const aspectClass =
+                clip.aspect_ratio === "16:9"
+                  ? "aspect-video"
+                  : clip.aspect_ratio === "1:1"
+                  ? "aspect-square"
+                  : clip.aspect_ratio === "4:5"
+                  ? "aspect-[4/5]"
+                  : "aspect-[9/16]";
+
               return (
                 <article
                   key={clip.id}
                   onClick={() => setSelectedClip(clip)}
                   className="group animate-rise cursor-pointer space-y-2.5"
                 >
-                  {/* 9:16 Video Thumbnail Box */}
-                  <div className="relative aspect-[9/16] overflow-hidden rounded-xl bg-black ring-1 ring-border transition-all duration-300 group-hover:ring-brand/50 group-hover:shadow-2xl">
+                  {/* Dynamic Aspect Ratio Video Thumbnail Box */}
+                  <div className={`relative ${aspectClass} overflow-hidden rounded-xl bg-black ring-1 ring-border transition-all duration-300 group-hover:ring-brand/50 group-hover:shadow-2xl`}>
                     <img
                       src={clip.thumbnail_url}
                       alt={clip.title}
@@ -279,6 +305,23 @@ export default function TaskPage() {
                       <div className="flex size-12 items-center justify-center rounded-full bg-white text-black shadow-xl">
                         <Play className="ml-0.5 size-5 fill-current" />
                       </div>
+                    </div>
+
+                    {/* Bottom Left: Aspect Ratio & Quick Edit */}
+                    <div className="absolute bottom-2.5 left-2.5 flex items-center gap-1 z-10">
+                      <span className="rounded bg-black/70 px-1.5 py-0.5 text-[9px] font-bold text-white backdrop-blur">
+                        {clip.aspect_ratio || "9:16"}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setEditingClip(clip);
+                        }}
+                        className="inline-flex items-center gap-0.5 rounded bg-brand/90 px-1.5 py-0.5 text-[9px] font-bold text-white shadow backdrop-blur transition hover:bg-brand"
+                      >
+                        <Scissors className="size-2.5" /> Edit
+                      </button>
                     </div>
 
                     {/* Bottom Right: Duration Badge */}
@@ -312,7 +355,23 @@ export default function TaskPage() {
       )}
 
       {/* Video Modal Player */}
-      <VideoModal clip={selectedClip} onClose={() => setSelectedClip(null)} />
+      <VideoModal
+        clip={selectedClip}
+        onClose={() => setSelectedClip(null)}
+        onOpenEditor={(clip) => {
+          setSelectedClip(null);
+          setEditingClip(clip);
+        }}
+      />
+
+      {/* Clip Studio Editor Modal */}
+      <ClipEditorModal
+        taskId={taskId}
+        clip={editingClip}
+        isOpen={!!editingClip}
+        onClose={() => setEditingClip(null)}
+        onClipUpdated={handleClipUpdated}
+      />
     </div>
   );
 }

@@ -17,11 +17,12 @@ def generate_ass_subtitles(
     clip_start: float,
     clip_end: float,
     output_path: Path,
+    aspect_ratio: str = "9:16",
     style_name: str = "bold_yellow"
 ) -> str:
     """
-    Generates word-level animated ASS subtitles for 9:16 vertical video.
-    Each phrase is 3-5 words, highlighting the current word as spoken in vivid yellow.
+    Generates word-level animated ASS subtitles for specified aspect ratio.
+    Each phrase is 3-4 words, highlighting the current word as spoken in vivid yellow.
     """
     # Filter words inside the clip duration
     raw_clip_words = [
@@ -51,16 +52,26 @@ def generate_ass_subtitles(
         if chunk:
             word_groups.append(chunk)
 
+    # Aspect ratio resolution and subtitle margin tuning
+    if aspect_ratio == "16:9":
+        res_x, res_y, fontsize, margin_v = 1920, 1080, 60, 120
+    elif aspect_ratio == "1:1":
+        res_x, res_y, fontsize, margin_v = 1080, 1080, 56, 140
+    elif aspect_ratio == "4:5":
+        res_x, res_y, fontsize, margin_v = 1080, 1350, 64, 220
+    else: # 9:16 default
+        res_x, res_y, fontsize, margin_v = 1080, 1920, 72, 340
+
     # Build ASS Content
-    ass_header = """[Script Info]
+    ass_header = f"""[Script Info]
 ScriptType: v4.00+
-PlayResX: 1080
-PlayResY: 1920
+PlayResX: {res_x}
+PlayResY: {res_y}
 ScaledBorderAndShadow: yes
 
 [V4+ Styles]
 Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding
-Style: Default,Arial Black,72,&H00FFFFFF,&H0000FFFF,&H00000000,&H80000000,-1,0,0,0,100,100,2,0,1,6,3,2,60,60,340,1
+Style: Default,Arial Black,{fontsize},&H00FFFFFF,&H0000FFFF,&H00000000,&H80000000,-1,0,0,0,100,100,2,0,1,6,3,2,60,60,{margin_v},1
 
 [Events]
 Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text

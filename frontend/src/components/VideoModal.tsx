@@ -1,10 +1,10 @@
 "use client";
 
 import React, { useEffect } from "react";
-import { X, Download, Flame, Eye, Share2, Sparkles, TrendingUp } from "lucide-react";
+import { X, Download, Flame, Eye, Share2, Sparkles, TrendingUp, Scissors } from "lucide-react";
 import { ScoreRing } from "./ScoreRing";
 
-interface ClipItem {
+export interface ClipItem {
   id: string;
   clip_order: number;
   filename: string;
@@ -25,14 +25,25 @@ interface ClipItem {
   bgm_description?: string;
   sfx_cues?: any[];
   reasoning: string;
+  aspect_ratio?: string;
+  crop_mode?: string;
+  start_seconds?: number;
+  end_seconds?: number;
+  subtitles?: boolean;
+  bgm?: boolean;
+  sfx?: boolean;
+  effects?: boolean;
+  transitions?: boolean;
 }
 
 export function VideoModal({
   clip,
   onClose,
+  onOpenEditor,
 }: {
   clip: ClipItem | null;
   onClose: () => void;
+  onOpenEditor?: (clip: ClipItem) => void;
 }) {
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -62,9 +73,10 @@ export function VideoModal({
           <X className="size-5" />
         </button>
 
-        {/* 9:16 Video Player Column */}
+        {/* Dynamic Video Player Column */}
         <div className="relative flex items-center justify-center bg-black p-4 md:w-[420px] md:shrink-0">
           <video
+            key={clip.video_url}
             src={clip.video_url}
             controls
             autoPlay
@@ -154,17 +166,28 @@ export function VideoModal({
           </div>
 
           {/* Action Footer */}
-          <div className="mt-8 flex items-center justify-between border-t border-border pt-4">
-            <a
-              href={clip.video_url}
-              download={clip.filename}
-              className="inline-flex items-center gap-2 rounded-xl bg-brand px-5 py-2.5 text-sm font-semibold text-white shadow-lg transition hover:bg-brand/90"
-            >
-              <Download className="size-4" /> Download 1080p Clip
-            </a>
+          <div className="mt-8 flex flex-wrap items-center justify-between gap-3 border-t border-border pt-4">
+            <div className="flex items-center gap-2">
+              <a
+                href={clip.video_url}
+                download={clip.filename}
+                className="inline-flex items-center gap-2 rounded-xl bg-brand px-4 py-2 text-xs sm:text-sm font-semibold text-white shadow-lg transition hover:bg-brand/90"
+              >
+                <Download className="size-4" /> Download 1080p Clip
+              </a>
+              {onOpenEditor && (
+                <button
+                  type="button"
+                  onClick={() => onOpenEditor(clip)}
+                  className="inline-flex items-center gap-1.5 rounded-xl border border-brand/40 bg-brand/10 px-3.5 py-2 text-xs sm:text-sm font-semibold text-brand hover:bg-brand/20 transition"
+                >
+                  <Scissors className="size-4" /> Edit & Customize
+                </button>
+              )}
+            </div>
             <button
               onClick={onClose}
-              className="rounded-xl border border-border px-4 py-2.5 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground"
+              className="rounded-xl border border-border px-4 py-2 text-xs sm:text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground"
             >
               Close
             </button>
