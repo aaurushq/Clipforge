@@ -3,6 +3,7 @@ FROM python:3.10-slim
 # Install FFmpeg and dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
     ffmpeg \
+    fonts-freefont-ttf \
     curl \
     && rm -rf /var/lib/apt/lists/*
 
