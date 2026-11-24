@@ -4,6 +4,7 @@ WORKDIR /app
 
 COPY package.json package-lock.json* ./
 RUN npm install
+RUN mkdir -p public
 
 COPY . .
 RUN npm run build
